@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/** String resolvers to apply e.g. to annotation attribute values. */
 	private final List<StringValueResolver> embeddedValueResolvers = new CopyOnWriteArrayList<>();
 
-	/** BeanPostProcessors to apply in createBean. */
+	/** BeanPostProcessors to apply. */
 	private final List<BeanPostProcessor> beanPostProcessors = new CopyOnWriteArrayList<>();
 
 	/** Indicates whether any InstantiationAwareBeanPostProcessors have been registered. */
@@ -725,8 +725,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			aliases.add(fullBeanName);
 		}
 		String[] retrievedAliases = super.getAliases(beanName);
+		String prefix = factoryPrefix ? FACTORY_BEAN_PREFIX : "";
 		for (String retrievedAlias : retrievedAliases) {
-			String alias = (factoryPrefix ? FACTORY_BEAN_PREFIX : "") + retrievedAlias;
+			String alias = prefix + retrievedAlias;
 			if (!alias.equals(name)) {
 				aliases.add(alias);
 			}
@@ -767,6 +768,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	public void setParentBeanFactory(@Nullable BeanFactory parentBeanFactory) {
 		if (this.parentBeanFactory != null && this.parentBeanFactory != parentBeanFactory) {
 			throw new IllegalStateException("Already associated with parent BeanFactory: " + this.parentBeanFactory);
+		}
+		if (this == parentBeanFactory) {
+			throw new IllegalStateException("Cannot set parent bean factory to self");
 		}
 		this.parentBeanFactory = parentBeanFactory;
 	}
@@ -944,7 +948,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	/**
 	 * Return whether this factory holds a InstantiationAwareBeanPostProcessor
-	 * that will get applied to singleton beans on shutdown.
+	 * that will get applied to singleton beans on creation.
 	 * @see #addBeanPostProcessor
 	 * @see org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor
 	 */
@@ -1342,7 +1346,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							else {
 								throw new NoSuchBeanDefinitionException(parentBeanName,
 										"Parent name '" + parentBeanName + "' is equal to bean name '" + beanName +
-										"': cannot be resolved without an AbstractBeanFactory parent");
+										"': cannot be resolved without a ConfigurableBeanFactory parent");
 							}
 						}
 					}
@@ -1770,7 +1774,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * Get the object for the given bean instance, either the bean
 	 * instance itself or its created object in case of a FactoryBean.
 	 * @param beanInstance the shared bean instance
-	 * @param name name that may include factory dereference prefix
+	 * @param name the name that may include factory dereference prefix
 	 * @param beanName the canonical bean name
 	 * @param mbd the merged bean definition
 	 * @return the object to expose for the bean

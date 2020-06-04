@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2019 the original author or authors.
+ * Copyright 2002-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ import static org.mockito.Mockito.mock;
  * @author Rossen Stoyanchev
  * @author Sebastien Deleuze
  */
-public class CodecConfigurerTests {
+class CodecConfigurerTests {
 
 	private final CodecConfigurer configurer = new TestCodecConfigurer();
 
@@ -75,7 +75,7 @@ public class CodecConfigurerTests {
 
 
 	@Test
-	public void defaultReaders() {
+	void defaultReaders() {
 		List<HttpMessageReader<?>> readers = this.configurer.getReaders();
 		assertThat(readers.size()).isEqualTo(11);
 		assertThat(getNextDecoder(readers).getClass()).isEqualTo(ByteArrayDecoder.class);
@@ -92,7 +92,7 @@ public class CodecConfigurerTests {
 	}
 
 	@Test
-	public void defaultWriters() {
+	void defaultWriters() {
 		List<HttpMessageWriter<?>> writers = this.configurer.getWriters();
 		assertThat(writers.size()).isEqualTo(10);
 		assertThat(getNextEncoder(writers).getClass()).isEqualTo(ByteArrayEncoder.class);
@@ -108,7 +108,7 @@ public class CodecConfigurerTests {
 	}
 
 	@Test
-	public void defaultAndCustomReaders() {
+	void defaultAndCustomReaders() {
 		Decoder<?> customDecoder1 = mock(Decoder.class);
 		Decoder<?> customDecoder2 = mock(Decoder.class);
 
@@ -121,11 +121,11 @@ public class CodecConfigurerTests {
 		given(customReader1.canRead(ResolvableType.forClass(Object.class), null)).willReturn(false);
 		given(customReader2.canRead(ResolvableType.forClass(Object.class), null)).willReturn(true);
 
-		this.configurer.customCodecs().decoder(customDecoder1);
-		this.configurer.customCodecs().decoder(customDecoder2);
+		this.configurer.customCodecs().register(customDecoder1);
+		this.configurer.customCodecs().register(customDecoder2);
 
-		this.configurer.customCodecs().reader(customReader1);
-		this.configurer.customCodecs().reader(customReader2);
+		this.configurer.customCodecs().register(customReader1);
+		this.configurer.customCodecs().register(customReader2);
 
 		List<HttpMessageReader<?>> readers = this.configurer.getReaders();
 
@@ -148,7 +148,7 @@ public class CodecConfigurerTests {
 	}
 
 	@Test
-	public void defaultAndCustomWriters() {
+	void defaultAndCustomWriters() {
 		Encoder<?> customEncoder1 = mock(Encoder.class);
 		Encoder<?> customEncoder2 = mock(Encoder.class);
 
@@ -161,11 +161,11 @@ public class CodecConfigurerTests {
 		given(customWriter1.canWrite(ResolvableType.forClass(Object.class), null)).willReturn(false);
 		given(customWriter2.canWrite(ResolvableType.forClass(Object.class), null)).willReturn(true);
 
-		this.configurer.customCodecs().encoder(customEncoder1);
-		this.configurer.customCodecs().encoder(customEncoder2);
+		this.configurer.customCodecs().register(customEncoder1);
+		this.configurer.customCodecs().register(customEncoder2);
 
-		this.configurer.customCodecs().writer(customWriter1);
-		this.configurer.customCodecs().writer(customWriter2);
+		this.configurer.customCodecs().register(customWriter1);
+		this.configurer.customCodecs().register(customWriter2);
 
 		List<HttpMessageWriter<?>> writers = this.configurer.getWriters();
 
@@ -187,7 +187,7 @@ public class CodecConfigurerTests {
 	}
 
 	@Test
-	public void defaultsOffCustomReaders() {
+	void defaultsOffCustomReaders() {
 		Decoder<?> customDecoder1 = mock(Decoder.class);
 		Decoder<?> customDecoder2 = mock(Decoder.class);
 
@@ -200,11 +200,11 @@ public class CodecConfigurerTests {
 		given(customReader1.canRead(ResolvableType.forClass(Object.class), null)).willReturn(false);
 		given(customReader2.canRead(ResolvableType.forClass(Object.class), null)).willReturn(true);
 
-		this.configurer.customCodecs().decoder(customDecoder1);
-		this.configurer.customCodecs().decoder(customDecoder2);
+		this.configurer.customCodecs().register(customDecoder1);
+		this.configurer.customCodecs().register(customDecoder2);
 
-		this.configurer.customCodecs().reader(customReader1);
-		this.configurer.customCodecs().reader(customReader2);
+		this.configurer.customCodecs().register(customReader1);
+		this.configurer.customCodecs().register(customReader2);
 
 		this.configurer.registerDefaults(false);
 
@@ -218,7 +218,7 @@ public class CodecConfigurerTests {
 	}
 
 	@Test
-	public void defaultsOffWithCustomWriters() {
+	void defaultsOffWithCustomWriters() {
 		Encoder<?> customEncoder1 = mock(Encoder.class);
 		Encoder<?> customEncoder2 = mock(Encoder.class);
 
@@ -231,11 +231,11 @@ public class CodecConfigurerTests {
 		given(customWriter1.canWrite(ResolvableType.forClass(Object.class), null)).willReturn(false);
 		given(customWriter2.canWrite(ResolvableType.forClass(Object.class), null)).willReturn(true);
 
-		this.configurer.customCodecs().encoder(customEncoder1);
-		this.configurer.customCodecs().encoder(customEncoder2);
+		this.configurer.customCodecs().register(customEncoder1);
+		this.configurer.customCodecs().register(customEncoder2);
 
-		this.configurer.customCodecs().writer(customWriter1);
-		this.configurer.customCodecs().writer(customWriter2);
+		this.configurer.customCodecs().register(customWriter1);
+		this.configurer.customCodecs().register(customWriter2);
 
 		this.configurer.registerDefaults(false);
 
@@ -249,9 +249,11 @@ public class CodecConfigurerTests {
 	}
 
 	@Test
-	public void encoderDecoderOverrides() {
+	void encoderDecoderOverrides() {
 		Jackson2JsonDecoder jacksonDecoder = new Jackson2JsonDecoder();
 		Jackson2JsonEncoder jacksonEncoder = new Jackson2JsonEncoder();
+		Jackson2SmileDecoder smileDecoder = new Jackson2SmileDecoder();
+		Jackson2SmileEncoder smileEncoder = new Jackson2SmileEncoder();
 		ProtobufDecoder protobufDecoder = new ProtobufDecoder(ExtensionRegistry.newInstance());
 		ProtobufEncoder protobufEncoder = new ProtobufEncoder();
 		Jaxb2XmlEncoder jaxb2Encoder = new Jaxb2XmlEncoder();
@@ -259,37 +261,63 @@ public class CodecConfigurerTests {
 
 		this.configurer.defaultCodecs().jackson2JsonDecoder(jacksonDecoder);
 		this.configurer.defaultCodecs().jackson2JsonEncoder(jacksonEncoder);
+		this.configurer.defaultCodecs().jackson2SmileDecoder(smileDecoder);
+		this.configurer.defaultCodecs().jackson2SmileEncoder(smileEncoder);
 		this.configurer.defaultCodecs().protobufDecoder(protobufDecoder);
 		this.configurer.defaultCodecs().protobufEncoder(protobufEncoder);
 		this.configurer.defaultCodecs().jaxb2Decoder(jaxb2Decoder);
 		this.configurer.defaultCodecs().jaxb2Encoder(jaxb2Encoder);
 
 		assertDecoderInstance(jacksonDecoder);
+		assertDecoderInstance(smileDecoder);
 		assertDecoderInstance(protobufDecoder);
 		assertDecoderInstance(jaxb2Decoder);
 		assertEncoderInstance(jacksonEncoder);
+		assertEncoderInstance(smileEncoder);
 		assertEncoderInstance(protobufEncoder);
 		assertEncoderInstance(jaxb2Encoder);
 	}
 
 	@Test
-	public void cloneCustomCodecs() {
+	void cloneEmptyCustomCodecs() {
 		this.configurer.registerDefaults(false);
+		assertThat(this.configurer.getReaders()).isEmpty();
+		assertThat(this.configurer.getWriters()).isEmpty();
+
 		CodecConfigurer clone = this.configurer.clone();
+		clone.customCodecs().register(new Jackson2JsonEncoder());
+		clone.customCodecs().register(new Jackson2JsonDecoder());
+		clone.customCodecs().register(new ServerSentEventHttpMessageReader());
+		clone.customCodecs().register(new ServerSentEventHttpMessageWriter());
 
-		clone.customCodecs().encoder(new Jackson2JsonEncoder());
-		clone.customCodecs().decoder(new Jackson2JsonDecoder());
-		clone.customCodecs().reader(new ServerSentEventHttpMessageReader());
-		clone.customCodecs().writer(new ServerSentEventHttpMessageWriter());
-
-		assertThat(this.configurer.getReaders().size()).isEqualTo(0);
-		assertThat(this.configurer.getWriters().size()).isEqualTo(0);
-		assertThat(clone.getReaders().size()).isEqualTo(2);
-		assertThat(clone.getWriters().size()).isEqualTo(2);
+		assertThat(this.configurer.getReaders()).isEmpty();
+		assertThat(this.configurer.getWriters()).isEmpty();
+		assertThat(clone.getReaders()).hasSize(2);
+		assertThat(clone.getWriters()).hasSize(2);
 	}
 
 	@Test
-	public void cloneDefaultCodecs() {
+	void cloneCustomCodecs() {
+		this.configurer.registerDefaults(false);
+		assertThat(this.configurer.getReaders()).isEmpty();
+		assertThat(this.configurer.getWriters()).isEmpty();
+
+		this.configurer.customCodecs().register(new Jackson2JsonEncoder());
+		this.configurer.customCodecs().register(new Jackson2JsonDecoder());
+		this.configurer.customCodecs().register(new ServerSentEventHttpMessageReader());
+		this.configurer.customCodecs().register(new ServerSentEventHttpMessageWriter());
+		assertThat(this.configurer.getReaders()).hasSize(2);
+		assertThat(this.configurer.getWriters()).hasSize(2);
+
+		CodecConfigurer clone = this.configurer.clone();
+		assertThat(this.configurer.getReaders()).hasSize(2);
+		assertThat(this.configurer.getWriters()).hasSize(2);
+		assertThat(clone.getReaders()).hasSize(2);
+		assertThat(clone.getWriters()).hasSize(2);
+	}
+
+	@Test
+	void cloneDefaultCodecs() {
 		CodecConfigurer clone = this.configurer.clone();
 
 		Jackson2JsonDecoder jacksonDecoder = new Jackson2JsonDecoder();
@@ -337,6 +365,7 @@ public class CodecConfigurerTests {
 		assertThat(encoders).doesNotContain(jacksonEncoder, jaxb2Encoder, protoEncoder);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	void withDefaultCodecConfig() {
 		AtomicBoolean callbackCalled = new AtomicBoolean(false);
